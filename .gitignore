@@ -29,6 +29,8 @@ Thumbs.db
 # Ollama / models
 models/blobs/
 models/manifests/
+models/
+voice/
 
 # Portable data
 vscode/data/
