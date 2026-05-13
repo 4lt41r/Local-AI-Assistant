@@ -1,4 +1,4 @@
-# JARVIS Portable AI Workspace
+﻿# JARVIS Portable AI Workspace
 
 A fully local, portable AI workstation. No cloud dependency. Runs from external SSD.
 
