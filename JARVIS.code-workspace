@@ -1,0 +1,19 @@
+{
+  "folders": [
+    {
+      "path": "F:\\jarvis_final",
+      "name": "JARVIS Root"
+    },
+    {
+      "path": "F:\\jarvis_final\\backend",
+      "name": "Backend"
+    },
+    {
+      "path": "F:\\jarvis_final\\launcher",
+      "name": "Launcher"
+    }
+  ],
+  "settings": {
+    "python.defaultInterpreterPath": "F:\\jarvis_final\\venv\\Scripts\\python.exe"
+  }
+}

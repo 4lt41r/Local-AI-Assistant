@@ -1,0 +1,25 @@
+{
+  "version": "1.0.0",
+  "install_root": "F:\\Jarvis",
+  "backend_port": 8000,
+  "electron_port": 3000,
+  "ollama_host": "http://localhost:11434",
+  "ollama_keep_alive": "0",
+  "default_model": "llama3.1:8b",
+  "models": {
+    "code": "qwen2.5-coder:7b",
+    "reasoning": "deepseek-r1:7b",
+    "general": "llama3.1:8b",
+    "vision": "llava:7b"
+  },
+  "voice": {
+    "wake_word": "jarvis",
+    "whisper_model": "small",
+    "piper_voice": "en_US-lessac-medium",
+    "enabled": true
+  },
+  "gpu": {
+    "num_gpu": 1,
+    "vram_limit_gb": 4.0
+  }
+}

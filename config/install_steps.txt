@@ -1,0 +1,6 @@
+python_venv
+nodejs
+ollama
+node_modules
+config
+models

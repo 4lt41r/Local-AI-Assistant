@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@600;700;900&family=Share+Tech+Mono&family=Rajdhani:wght@400;500&display=swap" rel="stylesheet" />
+  <style>
+    :root { --accent:#ffaa00; --accent2:#ff6600; --bg:#020408; --border:rgba(255,170,0,0.15); --text:#c8e8ff; --muted:#2a4a6a; }
+    *, *::before, *::after { box-sizing:border-box; margin:0; padding:0; }
+    body { background:var(--bg); color:var(--text); font-family:'Rajdhani',sans-serif; height:100vh;
+           display:flex; flex-direction:column; align-items:center; justify-content:center; gap:28px; overflow:hidden; }
+
+    .page-header { position:fixed; top:0; left:0; right:0; padding:14px 24px;
+      border-bottom:1px solid var(--border); display:flex; align-items:center; justify-content:space-between; }
+    .page-header h2 { font-family:'Orbitron',monospace; font-size:13px; letter-spacing:3px; color:var(--accent); }
+    .badge { font-family:'Share Tech Mono',monospace; font-size:11px; color:rgba(90,138,170,0.7); }
+
+    /* ── Orb ── */
+    .orb-wrap { position:relative; width:190px; height:190px; }
+    .ring { position:absolute; border-radius:50%; border:1px solid rgba(255,170,0,0.18);
+            top:50%; left:50%; transform:translate(-50%,-50%); }
+    .ring-1 { width:210px; height:210px; }
+    .ring-2 { width:252px; height:252px; }
+    .ring-3 { width:294px; height:294px; }
+
+    .orb { width:190px; height:190px; border-radius:50%;
+      background:radial-gradient(circle at 35% 35%, rgba(255,170,0,0.25), rgba(255,80,0,0.08), transparent 70%);
+      border:2px solid rgba(255,170,0,0.35);
+      box-shadow:0 0 30px rgba(255,170,0,0.25), inset 0 0 30px rgba(255,170,0,0.04);
+      display:flex; align-items:center; justify-content:center;
+      cursor:pointer; transition:all 0.3s; position:absolute; inset:0; z-index:1; }
+    .orb-icon { font-size:60px; opacity:0.75; transition:all 0.3s; }
+
+    /* State: listening */
+    .orb.listening { border-color:rgba(255,170,0,0.9);
+      box-shadow:0 0 60px rgba(255,170,0,0.55), 0 0 100px rgba(255,100,0,0.25), inset 0 0 40px rgba(255,170,0,0.12);
+      animation:orb-pulse 1.5s ease-in-out infinite; }
+    .orb.listening ~ .ring { animation:ring-expand 2s ease-out infinite; }
+    .orb.listening ~ .ring-2 { animation-delay:0.5s; }
+    .orb.listening ~ .ring-3 { animation-delay:1s; }
+
+    /* State: processing */
+    .orb.processing { border-color:rgba(0,212,255,0.8);
+      box-shadow:0 0 40px rgba(0,212,255,0.4), inset 0 0 30px rgba(0,212,255,0.06); }
+    .orb.processing .orb-icon { animation:spin-slow 2s linear infinite; }
+
+    /* State: speaking */
+    .orb.speaking { border-color:rgba(0,255,136,0.8);
+      box-shadow:0 0 50px rgba(0,255,136,0.4), inset 0 0 30px rgba(0,255,136,0.06);
+      animation:speak-pulse 0.6s ease-in-out infinite; }
+
+    @keyframes orb-pulse   { 0%,100%{transform:scale(1)} 50%{transform:scale(1.04)} }
+    @keyframes speak-pulse { 0%,100%{transform:scale(1)} 50%{transform:scale(1.02)} }
+    @keyframes spin-slow   { to{transform:rotate(360deg)} }
+    @keyframes ring-expand {
+      0%  { opacity:0.5; transform:translate(-50%,-50%) scale(0.9); }
+      100%{ opacity:0;   transform:translate(-50%,-50%) scale(1.25); }
+    }
+
+    /* ── Text elements ── */
+    .status-text { font-family:'Orbitron',monospace; font-size:12px; letter-spacing:3px; color:var(--accent); min-height:20px; }
+
+    .transcript-box { width:520px; min-height:64px; max-height:130px;
+      background:rgba(8,16,28,0.9); border:1px solid var(--border);
+      border-radius:6px; padding:14px 18px;
+      font-family:'Share Tech Mono',monospace; font-size:13px;
+      color:var(--text); overflow-y:auto; line-height:1.55; text-align:center; }
+    .transcript-box.empty { color:var(--muted); }
+
+    /* ── Visualizer bars ── */
+    #viz { display:flex; align-items:flex-end; gap:3px; height:40px; margin-top:4px; }
+    .bar { width:4px; background:rgba(255,170,0,0.3); border-radius:2px;
+           transition:height 0.1s; min-height:4px; }
+
+    /* ── Controls ── */
+    .controls { display:flex; gap:12px; }
+    .ctrl-btn { font-family:'Orbitron',monospace; font-size:10px; letter-spacing:2px;
+      padding:10px 22px; background:transparent;
+      border:1px solid var(--accent); color:var(--accent);
+      border-radius:4px; cursor:pointer; transition:all 0.2s; }
+    .ctrl-btn:hover { background:var(--accent); color:#020408; }
+    .ctrl-btn.secondary { border-color:rgba(255,255,255,0.12); color:var(--muted); }
+    .ctrl-btn.secondary:hover { border-color:rgba(255,255,255,0.3); color:var(--text); background:transparent; }
+
+    .wake-hint { font-size:11px; letter-spacing:2px; color:var(--muted); font-family:'Orbitron',monospace; }
+    .wake-hint span { color:var(--accent); }
+
+    ::-webkit-scrollbar { width:3px; } ::-webkit-scrollbar-thumb { background:rgba(255,170,0,0.2); border-radius:2px; }
+  </style>
+</head>
+<body>
+  <div class="page-header">
+    <h2>VOICE ASSISTANT</h2>
+    <div class="badge">whisper.cpp &nbsp;·&nbsp; piper TTS</div>
+  </div>
+
+  <div class="orb-wrap">
+    <div class="orb" id="orb">
+      <span class="orb-icon">&#9673;</span>
+    </div>
+    <div class="ring ring-1"></div>
+    <div class="ring ring-2"></div>
+    <div class="ring ring-3"></div>
+  </div>
+
+  <div class="status-text" id="voice-status">TAP TO SPEAK</div>
+
+  <div id="viz">
+    <div class="bar" style="height:8px"></div><div class="bar" style="height:14px"></div>
+    <div class="bar" style="height:6px"></div><div class="bar" style="height:20px"></div>
+    <div class="bar" style="height:10px"></div><div class="bar" style="height:16px"></div>
+    <div class="bar" style="height:8px"></div><div class="bar" style="height:12px"></div>
+    <div class="bar" style="height:18px"></div><div class="bar" style="height:6px"></div>
+    <div class="bar" style="height:22px"></div><div class="bar" style="height:8px"></div>
+    <div class="bar" style="height:14px"></div><div class="bar" style="height:10px"></div>
+    <div class="bar" style="height:20px"></div><div class="bar" style="height:4px"></div>
+  </div>
+
+  <div class="transcript-box empty" id="transcript">
+    Say "Hey Jarvis" or tap the orb to begin...
+  </div>
+
+  <div class="controls">
+    <button class="ctrl-btn" id="mic-btn">&#9679; START</button>
+    <button class="ctrl-btn secondary" id="stop-btn">&#9632; STOP</button>
+  </div>
+
+  <div class="wake-hint">Wake word: <span id="wake-word-display">"Hey Jarvis"</span></div>
+
+  <script src="../js/voice-ui.js"></script>
+  <script>
+    // ── Mic visualizer (Web Audio API) ────────────────────────
+    let analyser = null, vizData = null, vizActive = false;
+    const bars = document.querySelectorAll('.bar');
+
+    async function startViz() {
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        const ctx = new AudioContext();
+        const src = ctx.createMediaStreamSource(stream);
+        analyser  = ctx.createAnalyser();
+        analyser.fftSize = 64;
+        vizData   = new Uint8Array(analyser.frequencyBinCount);
+        src.connect(analyser);
+        vizActive = true;
+        animateViz();
+      } catch(e) { console.warn('Viz mic denied:', e); }
+    }
+
+    function animateViz() {
+      if (!vizActive) return;
+      requestAnimationFrame(animateViz);
+      analyser.getByteFrequencyData(vizData);
+      bars.forEach((bar, i) => {
+        const val = (vizData[i] || 0) / 255;
+        const h   = 4 + val * 36;
+        bar.style.height = h + 'px';
+        bar.style.background = `rgba(255,170,0,${0.2 + val * 0.8})`;
+      });
+    }
+
+    // Idle animation for bars when not capturing
+    function idleViz() {
+      bars.forEach((bar, i) => {
+        const h = 4 + Math.abs(Math.sin(Date.now() * 0.003 + i * 0.4)) * 16;
+        bar.style.height = h + 'px';
+        bar.style.background = 'rgba(255,170,0,0.2)';
+      });
+    }
+    setInterval(() => { if (!vizActive) idleViz(); }, 50);
+
+    // Load wake word from backend
+    fetch('http://localhost:8000/voice/status')
+      .then(r => r.json())
+      .then(d => {
+        const el = document.getElementById('wake-word-display');
+        if (el && d.wake_word) el.textContent = '"' + d.wake_word + '"';
+      }).catch(() => {});
+
+    // Start viz on orb click
+    document.getElementById('orb').addEventListener('click', () => {
+      if (!vizActive) startViz();
+    });
+  </script>
+</body>
+</html>

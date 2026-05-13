@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@600;700&family=Share+Tech+Mono&family=Rajdhani:wght@400;500;600&display=swap" rel="stylesheet" />
+  <style>
+    :root { --accent:#00d4ff; --bg:#020408; --panel:rgba(8,20,36,0.8); --border:rgba(0,180,255,0.15); --text:#c8e8ff; --muted:#2a4a6a; --secondary:#5a8aaa; --green:#00ff88; }
+    *, *::before, *::after { box-sizing:border-box; margin:0; padding:0; }
+    body { background:var(--bg); color:var(--text); font-family:'Rajdhani',sans-serif; height:100vh; overflow-y:auto; }
+    .page { max-width:680px; margin:0 auto; padding:28px 24px; }
+    h2 { font-family:'Orbitron',monospace; font-size:13px; letter-spacing:3px; color:var(--accent); margin-bottom:28px; }
+    .section { margin-bottom:28px; }
+    .section-title { font-family:'Orbitron',monospace; font-size:9px; letter-spacing:3px; color:var(--muted); margin-bottom:12px; padding-bottom:8px; border-bottom:1px solid var(--border); }
+    .field { display:flex; align-items:center; justify-content:space-between; padding:12px 16px; background:var(--panel); border:1px solid var(--border); border-radius:6px; margin-bottom:6px; }
+    .field-info { display:flex; flex-direction:column; gap:2px; }
+    .field-label { font-size:14px; font-weight:600; color:var(--text); }
+    .field-desc  { font-size:11px; color:var(--muted); letter-spacing:0.5px; }
+    select, input[type=text], input[type=number] {
+      background:rgba(3,8,18,0.9); border:1px solid var(--border);
+      color:var(--text); font-family:'Share Tech Mono',monospace;
+      font-size:12px; padding:6px 10px; border-radius:3px; outline:none;
+      min-width:180px;
+    }
+    select:focus, input:focus { border-color:rgba(0,212,255,0.4); }
+    .toggle { position:relative; width:44px; height:24px; }
+    .toggle input { opacity:0; width:0; height:0; position:absolute; }
+    .slider { position:absolute; inset:0; background:rgba(0,0,0,0.4); border:1px solid var(--border); border-radius:12px; cursor:pointer; transition:all 0.25s; }
+    .slider::before { content:''; position:absolute; height:16px; width:16px; left:3px; bottom:3px; background:var(--muted); border-radius:50%; transition:all 0.25s; }
+    .toggle input:checked + .slider { border-color:var(--accent); background:rgba(0,212,255,0.1); }
+    .toggle input:checked + .slider::before { transform:translateX(20px); background:var(--accent); box-shadow:0 0 8px var(--accent); }
+    .save-row { display:flex; gap:12px; margin-top:20px; align-items:center; }
+    .btn { font-family:'Orbitron',monospace; font-size:10px; letter-spacing:2px; padding:10px 24px; border-radius:4px; cursor:pointer; transition:all 0.2s; }
+    .btn-primary   { background:transparent; border:1px solid var(--accent); color:var(--accent); }
+    .btn-primary:hover   { background:var(--accent); color:#020408; }
+    .btn-secondary { background:transparent; border:1px solid var(--border); color:var(--secondary); }
+    .btn-secondary:hover { border-color:var(--secondary); }
+    .save-status { font-family:'Share Tech Mono',monospace; font-size:11px; color:var(--green); display:none; }
+    .save-status.show { display:block; }
+    .save-status.error { color:#ff3355; }
+    .system-info { font-family:'Share Tech Mono',monospace; font-size:12px; line-height:2; color:var(--secondary); }
+    .system-info span { color:var(--accent); }
+
+    /* Profile section */
+    .profile-grid { display:grid; gap:6px; }
+    .profile-item { display:flex; align-items:center; gap:12px; padding:10px 16px; background:var(--panel); border:1px solid var(--border); border-radius:6px; }
+    .profile-key { font-family:'Share Tech Mono',monospace; font-size:11px; color:var(--muted); width:90px; flex-shrink:0; }
+    .profile-val { flex:1; background:rgba(3,8,18,0.9); border:1px solid var(--border); color:var(--text); font-family:'Share Tech Mono',monospace; font-size:12px; padding:5px 9px; border-radius:3px; outline:none; }
+    .profile-val:focus { border-color:rgba(0,212,255,0.4); }
+
+    ::-webkit-scrollbar { width:3px; } ::-webkit-scrollbar-thumb { background:rgba(0,180,255,0.2); }
+  </style>
+</head>
+<body>
+<div class="page">
+  <h2>CONFIGURATION</h2>
+
+  <!-- User Profile -->
+  <div class="section">
+    <div class="section-title">USER PROFILE</div>
+    <div class="profile-grid">
+      <div class="profile-item">
+        <span class="profile-key">NAME</span>
+        <input class="profile-val" id="profile-name" type="text" placeholder="Your name" />
+      </div>
+      <div class="profile-item">
+        <span class="profile-key">LOCATION</span>
+        <input class="profile-val" id="profile-location" type="text" placeholder="City, Country" />
+      </div>
+      <div class="profile-item">
+        <span class="profile-key">REMEMBER</span>
+        <input class="profile-val" id="profile-fact" type="text" placeholder="Add a fact for JARVIS to remember..." />
+      </div>
+    </div>
+  </div>
+
+  <!-- Models -->
+  <div class="section">
+    <div class="section-title">AI MODELS</div>
+    <div class="field">
+      <div class="field-info">
+        <span class="field-label">General Model</span>
+        <span class="field-desc">Default for most tasks</span>
+      </div>
+      <select id="model-general">
+        <option value="llama3.1:8b">llama3.1:8b</option>
+        <option value="llama3.2:3b">llama3.2:3b</option>
+        <option value="mistral:7b">mistral:7b</option>
+        <option value="deepseek-r1:7b">deepseek-r1:7b</option>
+      </select>
+    </div>
+    <div class="field">
+      <div class="field-info">
+        <span class="field-label">Code Model</span>
+        <span class="field-desc">Programming &amp; debugging</span>
+      </div>
+      <select id="model-code">
+        <option value="qwen2.5-coder:7b">qwen2.5-coder:7b</option>
+        <option value="qwen2.5-coder:3b">qwen2.5-coder:3b</option>
+        <option value="deepseek-coder:6.7b">deepseek-coder:6.7b</option>
+      </select>
+    </div>
+    <div class="field">
+      <div class="field-info">
+        <span class="field-label">Reasoning Model</span>
+        <span class="field-desc">Analysis &amp; planning</span>
+      </div>
+      <select id="model-reasoning">
+        <option value="deepseek-r1:7b">deepseek-r1:7b</option>
+        <option value="deepseek-r1:1.5b">deepseek-r1:1.5b</option>
+        <option value="llama3.1:8b">llama3.1:8b</option>
+      </select>
+    </div>
+    <div class="field">
+      <div class="field-info">
+        <span class="field-label">Keep-Alive Timeout</span>
+        <span class="field-desc">Auto-unload idle models</span>
+      </div>
+      <select id="keep-alive">
+        <option value="5m">5 minutes</option>
+        <option value="10m">10 minutes</option>
+        <option value="30m">30 minutes</option>
+        <option value="0">Never unload</option>
+      </select>
+    </div>
+  </div>
+
+  <!-- Voice -->
+  <div class="section">
+    <div class="section-title">VOICE</div>
+    <div class="field">
+      <div class="field-info">
+        <span class="field-label">Voice Enabled</span>
+        <span class="field-desc">Wake word + TTS responses</span>
+      </div>
+      <label class="toggle"><input type="checkbox" id="voice-enabled"><span class="slider"></span></label>
+    </div>
+    <div class="field">
+      <div class="field-info">
+        <span class="field-label">Wake Word</span>
+        <span class="field-desc">Say this to activate JARVIS</span>
+      </div>
+      <input type="text" id="wake-word" placeholder="jarvis" />
+    </div>
+    <div class="field">
+      <div class="field-info">
+        <span class="field-label">Whisper Model</span>
+        <span class="field-desc">STT accuracy (larger = better)</span>
+      </div>
+      <select id="whisper-model">
+        <option value="base.en">base.en  (~150 MB, fast)</option>
+        <option value="small">small    (~460 MB, better accent)</option>
+        <option value="small.en">small.en (~480 MB)</option>
+        <option value="medium">medium   (~1.5 GB, best)</option>
+      </select>
+    </div>
+  </div>
+
+  <!-- Performance -->
+  <div class="section">
+    <div class="section-title">PERFORMANCE</div>
+    <div class="field">
+      <div class="field-info">
+        <span class="field-label">GPU Layers</span>
+        <span class="field-desc">Ollama GPU offload (0 = CPU only)</span>
+      </div>
+      <input type="number" id="num-gpu" value="1" min="0" max="1" style="min-width:80px" />
+    </div>
+    <div class="field">
+      <div class="field-info">
+        <span class="field-label">Scan Lines</span>
+        <span class="field-desc">CRT overlay effect</span>
+      </div>
+      <label class="toggle"><input type="checkbox" id="scanlines" checked><span class="slider"></span></label>
+    </div>
+  </div>
+
+  <!-- System Info -->
+  <div class="section">
+    <div class="section-title">SYSTEM INFO</div>
+    <div class="system-info" id="sys-info">Loading...</div>
+  </div>
+
+  <div class="save-row">
+    <button class="btn btn-primary"   id="save-btn">SAVE CONFIG</button>
+    <button class="btn btn-secondary" id="reload-btn">RELOAD</button>
+    <span class="save-status" id="save-status"></span>
+  </div>
+</div>
+
+<script>
+  const BACKEND = 'http://localhost:8000';
+
+  // ── Set a <select> value; add option if not found ─────────────────────────
+  function setSelect(id, value) {
+    if (!value) return;
+    const sel = document.getElementById(id);
+    if (!sel) return;
+    for (const opt of sel.options) {
+      if (opt.value === value) { sel.value = value; return; }
+    }
+    // Value not in list — add it so it shows correctly
+    const opt = new Option(value, value);
+    sel.appendChild(opt);
+    sel.value = value;
+  }
+
+  // ── Load current config from backend ──────────────────────────────────────
+  async function loadConfig() {
+    try {
+      const cfg = await (await fetch(`${BACKEND}/config`)).json();
+
+      setSelect('model-general',   cfg.models?.general   || cfg.default_model);
+      setSelect('model-code',      cfg.models?.code);
+      setSelect('model-reasoning', cfg.models?.reasoning);
+      setSelect('keep-alive',      cfg.ollama_keep_alive);
+      setSelect('whisper-model',   cfg.voice?.whisper_model);
+
+      document.getElementById('voice-enabled').checked =
+        cfg.voice?.enabled !== false;
+      document.getElementById('wake-word').value =
+        cfg.voice?.wake_word || 'jarvis';
+      document.getElementById('num-gpu').value =
+        cfg.gpu?.num_gpu ?? 1;
+    } catch (e) {
+      console.warn('[settings] config load failed:', e);
+    }
+  }
+
+  // ── Load user profile ─────────────────────────────────────────────────────
+  async function loadProfile() {
+    try {
+      const p = await (await fetch(`${BACKEND}/chat/profile`)).json();
+      document.getElementById('profile-name').value     = p.name     || '';
+      document.getElementById('profile-location').value = p.location || '';
+    } catch {}
+  }
+
+  // ── Load system stats ─────────────────────────────────────────────────────
+  async function loadStats() {
+    try {
+      const d = await (await fetch(`${BACKEND}/system/stats`)).json();
+      document.getElementById('sys-info').innerHTML =
+        `OS: <span>Windows 11</span><br>` +
+        `RAM: <span>${d.ram_used_gb || '—'} GB / ${d.ram_total_gb || '—'} GB</span><br>` +
+        `VRAM: <span>${d.vram_used_mb || '—'} MB</span><br>` +
+        `CPU: <span>${d.cpu_percent || '—'}%</span><br>` +
+        `Active Model: <span>${d.active_model || 'None'}</span>`;
+    } catch {
+      document.getElementById('sys-info').innerHTML = 'Backend offline — stats unavailable';
+    }
+  }
+
+  // ── Save ──────────────────────────────────────────────────────────────────
+  document.getElementById('save-btn').addEventListener('click', async () => {
+    const statusEl = document.getElementById('save-status');
+
+    // Build config payload
+    const cfg = {
+      default_model:      document.getElementById('model-general').value,
+      ollama_keep_alive:  document.getElementById('keep-alive').value,
+      models: {
+        general:   document.getElementById('model-general').value,
+        code:      document.getElementById('model-code').value,
+        reasoning: document.getElementById('model-reasoning').value,
+      },
+      voice: {
+        enabled:       document.getElementById('voice-enabled').checked,
+        wake_word:     document.getElementById('wake-word').value.trim() || 'jarvis',
+        whisper_model: document.getElementById('whisper-model').value,
+      },
+      gpu: {
+        num_gpu: parseInt(document.getElementById('num-gpu').value) || 0,
+      },
+    };
+
+    // Build profile payload
+    const profileUpdates = {};
+    const name     = document.getElementById('profile-name').value.trim();
+    const location = document.getElementById('profile-location').value.trim();
+    const fact     = document.getElementById('profile-fact').value.trim();
+    if (name)     profileUpdates.name     = name;
+    if (location) profileUpdates.location = location;
+    if (fact)     profileUpdates.fact     = fact;
+
+    try {
+      // Save config
+      const r = await fetch(`${BACKEND}/config`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(cfg),
+      });
+      const result = await r.json();
+      if (result.status !== 'saved') throw new Error(result.detail || 'Unknown error');
+
+      // Save profile if anything changed
+      if (Object.keys(profileUpdates).length > 0) {
+        await fetch(`${BACKEND}/chat/profile`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(profileUpdates),
+        });
+        // Clear the fact input after saving
+        document.getElementById('profile-fact').value = '';
+      }
+
+      statusEl.textContent = 'SAVED';
+      statusEl.className   = 'save-status show';
+      setTimeout(() => { statusEl.className = 'save-status'; }, 2500);
+    } catch (e) {
+      statusEl.textContent = 'ERROR: ' + e.message;
+      statusEl.className   = 'save-status show error';
+    }
+  });
+
+  document.getElementById('reload-btn').addEventListener('click', () => {
+    loadConfig();
+    loadProfile();
+    loadStats();
+  });
+
+  // ── Boot ──────────────────────────────────────────────────────────────────
+  loadConfig();
+  loadProfile();
+  loadStats();
+</script>
+</body>
+</html>

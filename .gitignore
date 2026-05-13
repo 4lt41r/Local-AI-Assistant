@@ -1,0 +1,34 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.env
+*.venv
+venv/
+.env
+.env.*
+
+# Logs
+logs/
+*.log
+
+# VS Code
+.vscode/
+
+# Node
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Ollama / models
+models/blobs/
+models/manifests/
+
+# Portable data
+vscode/data/

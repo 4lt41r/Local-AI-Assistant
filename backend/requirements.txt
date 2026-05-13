@@ -1,0 +1,15 @@
+fastapi==0.111.0
+uvicorn[standard]==0.29.0
+httpx==0.27.0
+websockets==12.0
+psutil==5.9.8
+pydantic==2.7.1
+python-multipart==0.0.9
+# Voice
+pyaudio==0.2.14
+sounddevice==0.4.7
+soundfile==0.12.1
+# Tools (optional but recommended)
+duckduckgo-search>=6.0
+pyperclip>=1.8
+faster-whisper>=1.0

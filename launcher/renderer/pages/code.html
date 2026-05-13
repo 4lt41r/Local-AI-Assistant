@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@600;700&family=Share+Tech+Mono&family=Rajdhani:wght@400;500&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --accent:#00ff88; --accent2:#00d4ff; --amber:#ffaa00;
+      --bg:#020408; --panel:#080f1a; --border:rgba(0,255,136,0.15);
+      --border2:rgba(0,212,255,0.15); --text:#c8e8ff; --muted:#2a4a6a;
+    }
+    *, *::before, *::after { box-sizing:border-box; margin:0; padding:0; }
+    body { background:var(--bg); color:var(--text); font-family:'Rajdhani',sans-serif;
+           height:100vh; display:flex; flex-direction:column; overflow:hidden; }
+
+    /* ── Header ── */
+    .page-header { padding:12px 20px 10px; border-bottom:1px solid var(--border);
+      display:flex; align-items:center; justify-content:space-between; flex-shrink:0; }
+    .page-header h2 { font-family:'Orbitron',monospace; font-size:12px; letter-spacing:3px; color:var(--accent); }
+    .header-right { display:flex; align-items:center; gap:10px; }
+    .model-badge { font-family:'Share Tech Mono',monospace; font-size:11px;
+      color:var(--accent); border:1px solid rgba(0,255,136,0.25); padding:3px 10px; border-radius:3px; }
+
+    /* ── Layout: sidebar + split editor ── */
+    .main-layout { flex:1; display:flex; overflow:hidden; }
+
+    /* ── Left sidebar: projects ── */
+    #sidebar { width:200px; border-right:1px solid var(--border2); display:flex;
+               flex-direction:column; flex-shrink:0; overflow:hidden; }
+    .sidebar-section { padding:10px 12px 6px; font-family:'Orbitron',monospace;
+      font-size:8px; letter-spacing:2px; color:var(--muted); border-bottom:1px solid rgba(0,180,255,0.08); }
+    #recent-list { flex:1; overflow-y:auto; }
+    .recent-item { padding:8px 12px; font-size:12px; cursor:pointer;
+      border-bottom:1px solid rgba(0,180,255,0.06); transition:background 0.15s;
+      white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+    .recent-item:hover { background:rgba(0,212,255,0.07); color:var(--accent2); }
+    .recent-name { font-weight:600; font-size:13px; }
+    .recent-path { font-family:'Share Tech Mono',monospace; font-size:9px; color:var(--muted);
+      overflow:hidden; text-overflow:ellipsis; }
+    .open-vscode-btn { margin:10px 12px; font-family:'Orbitron',monospace; font-size:9px;
+      letter-spacing:1.5px; padding:8px 12px; background:transparent;
+      border:1px solid var(--border2); color:var(--accent2); border-radius:4px;
+      cursor:pointer; transition:all 0.2s; }
+    .open-vscode-btn:hover { background:var(--accent2); color:#020408; }
+
+    /* ── Split editor ── */
+    .split { flex:1; display:grid; grid-template-columns:1fr 1fr; overflow:hidden; }
+    .panel { display:flex; flex-direction:column; overflow:hidden; }
+    .panel:first-child { border-right:1px solid var(--border); }
+    .panel-header { padding:8px 14px; border-bottom:1px solid var(--border);
+      font-family:'Orbitron',monospace; font-size:8px; letter-spacing:2px;
+      color:var(--muted); display:flex; align-items:center; justify-content:space-between; flex-shrink:0; }
+    .panel-header span:last-child { font-size:9px; }
+
+    /* Drop zone */
+    #input-wrap { flex:1; position:relative; display:flex; flex-direction:column; }
+    #code-input { flex:1; background:rgba(5,12,20,0.95); border:none; color:var(--accent);
+      font-family:'Share Tech Mono',monospace; font-size:12px; padding:14px;
+      resize:none; outline:none; line-height:1.6; }
+    #code-input::placeholder { color:var(--muted); }
+    #drop-overlay { position:absolute; inset:0; background:rgba(0,255,136,0.08);
+      border:2px dashed rgba(0,255,136,0.4); display:none; align-items:center;
+      justify-content:center; font-family:'Orbitron',monospace; font-size:12px;
+      letter-spacing:2px; color:var(--accent); pointer-events:none; }
+    #drop-overlay.active { display:flex; }
+
+    /* File context bar */
+    #context-bar { display:none; padding:6px 14px; background:rgba(0,212,255,0.06);
+      border-top:1px solid var(--border2); font-family:'Share Tech Mono',monospace;
+      font-size:11px; color:var(--accent2); align-items:center; justify-content:space-between; }
+    #context-bar.show { display:flex; }
+    .ctx-clear { cursor:pointer; color:var(--muted); transition:color 0.2s; font-size:14px; }
+    .ctx-clear:hover { color:#ff3355; }
+
+    /* Output */
+    #code-output { flex:1; background:rgba(3,8,14,0.98); font-family:'Share Tech Mono',monospace;
+      font-size:12px; padding:14px; color:var(--text); overflow-y:auto;
+      line-height:1.6; white-space:pre-wrap; word-break:break-word; }
+    #code-output .comment { color:var(--muted); }
+    #code-output .keyword  { color:var(--accent); }
+
+    /* Action bar */
+    .action-bar { padding:10px 14px; border-top:1px solid var(--border);
+      display:flex; gap:8px; align-items:center; flex-shrink:0; flex-wrap:wrap; }
+    .action-bar select { background:rgba(8,20,36,0.95); border:1px solid var(--border);
+      color:var(--text); font-family:'Share Tech Mono',monospace; font-size:11px;
+      padding:5px 8px; border-radius:3px; outline:none; }
+    .run-btn { font-family:'Orbitron',monospace; font-size:9px; letter-spacing:2px;
+      padding:7px 18px; background:transparent; border:1px solid var(--accent);
+      color:var(--accent); border-radius:4px; cursor:pointer; transition:all 0.2s; }
+    .run-btn:hover { background:var(--accent); color:#020408; }
+    .run-btn:disabled { opacity:0.3; cursor:not-allowed; }
+    .icon-btn { font-size:14px; background:transparent; border:1px solid rgba(0,180,255,0.2);
+      color:var(--accent2); padding:6px 10px; border-radius:3px; cursor:pointer;
+      transition:all 0.2s; font-family:monospace; }
+    .icon-btn:hover { border-color:var(--accent2); }
+    .status-chip { font-family:'Orbitron',monospace; font-size:9px; letter-spacing:1px;
+      color:var(--muted); margin-left:auto; }
+    .status-chip.running { color:var(--amber); animation:blink 1s step-end infinite; }
+    .status-chip.done    { color:var(--accent); }
+    .status-chip.error   { color:#ff3355; }
+    @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.3} }
+
+    ::-webkit-scrollbar { width:3px; }
+    ::-webkit-scrollbar-thumb { background:rgba(0,255,136,0.2); border-radius:2px; }
+  </style>
+</head>
+<body>
+
+  <div class="page-header">
+    <h2>&#9001;/&#9002; CODE ASSISTANT</h2>
+    <div class="header-right">
+      <span id="char-count" style="font-family:'Share Tech Mono',monospace;font-size:10px;color:var(--muted)">0 chars</span>
+      <div class="model-badge" id="model-badge">qwen2.5-coder:7b</div>
+    </div>
+  </div>
+
+  <div class="main-layout">
+
+    <!-- Sidebar: recent projects -->
+    <div id="sidebar">
+      <div class="sidebar-section">RECENT PROJECTS</div>
+      <div id="recent-list">
+        <div class="recent-item" style="color:var(--muted);font-size:11px;padding:16px 12px;">No recent projects</div>
+      </div>
+      <button class="open-vscode-btn" id="open-vscode-btn">&#9001;/&#9002; OPEN VS CODE</button>
+    </div>
+
+    <!-- Split editor -->
+    <div class="split">
+
+      <!-- Left: input -->
+      <div class="panel">
+        <div class="panel-header">
+          <span>INPUT</span>
+          <span id="task-label">generate</span>
+        </div>
+        <div id="input-wrap">
+          <textarea id="code-input"
+            placeholder="// Describe what to build, or paste code to review/fix/explain...
+// Drag & drop a file to load it as context.
+
+// Examples:
+//   Write a Python class for a binary search tree
+//   Fix the bug in this TypeScript function
+//   Convert this to async/await
+//   Add type hints to this Python code"></textarea>
+          <div id="drop-overlay">DROP FILE TO LOAD CONTEXT</div>
+        </div>
+        <div id="context-bar">
+          <span id="context-file">No file</span>
+          <span class="ctx-clear" id="ctx-clear" title="Clear context">&#215;</span>
+        </div>
+        <div class="action-bar">
+          <select id="task-type">
+            <option value="generate">Generate</option>
+            <option value="explain">Explain</option>
+            <option value="fix">Fix Bug</option>
+            <option value="review">Code Review</option>
+            <option value="convert">Convert</option>
+            <option value="test">Write Tests</option>
+            <option value="types">Add Types</option>
+            <option value="docs">Add Docs</option>
+          </select>
+          <select id="lang-select">
+            <option value="python">Python</option>
+            <option value="javascript">JavaScript</option>
+            <option value="typescript">TypeScript</option>
+            <option value="rust">Rust</option>
+            <option value="go">Go</option>
+            <option value="cpp">C++</option>
+            <option value="java">Java</option>
+            <option value="bash">Bash</option>
+            <option value="sql">SQL</option>
+          </select>
+          <button class="run-btn" id="run-btn">RUN &#9654;</button>
+          <span class="status-chip" id="output-status">READY</span>
+        </div>
+      </div>
+
+      <!-- Right: output -->
+      <div class="panel">
+        <div class="panel-header">
+          <span>OUTPUT</span>
+          <div style="display:flex;gap:8px">
+            <button class="icon-btn" id="copy-btn" title="Copy output">&#10697;</button>
+            <button class="icon-btn" id="open-file-btn" title="Open in VS Code">&#9001;/&#9002;</button>
+          </div>
+        </div>
+        <div id="code-output">// Output will appear here...</div>
+        <div class="action-bar" style="border-top:1px solid var(--border);border-bottom:none;">
+          <span style="font-family:'Share Tech Mono',monospace;font-size:10px;color:var(--muted)" id="model-used"></span>
+          <span style="font-family:'Share Tech Mono',monospace;font-size:10px;color:var(--muted);margin-left:auto" id="token-count"></span>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <script>
+    const input     = document.getElementById('code-input');
+    const output    = document.getElementById('code-output');
+    const runBtn    = document.getElementById('run-btn');
+    const status    = document.getElementById('output-status');
+    const charCount = document.getElementById('char-count');
+    const taskLabel = document.getElementById('task-label');
+    const ctxBar    = document.getElementById('context-bar');
+    const ctxFile   = document.getElementById('context-file');
+    const ctxClear  = document.getElementById('ctx-clear');
+    const dropOverlay = document.getElementById('drop-overlay');
+
+    let fileContext = null;   // { name, content, language }
+
+    // ── Char count ────────────────────────────────────────────
+    input.addEventListener('input', () => {
+      charCount.textContent = input.value.length + ' chars';
+    });
+
+    document.getElementById('task-type').addEventListener('change', (e) => {
+      taskLabel.textContent = e.target.value;
+    });
+
+    // ── Run ───────────────────────────────────────────────────
+    const PROMPT_TEMPLATES = {
+      generate: (lang, text) => `Write ${lang} code for:\n${text}`,
+      explain:  (lang, text) => `Explain this ${lang} code step by step:\n\n${text}`,
+      fix:      (lang, text) => `Find and fix the bug in this ${lang} code. Explain what was wrong:\n\n${text}`,
+      review:   (lang, text) => `Review this ${lang} code for quality, bugs, security, and performance:\n\n${text}`,
+      convert:  (lang, text) => `Convert this code to ${lang}. Keep the same logic:\n\n${text}`,
+      test:     (lang, text) => `Write comprehensive unit tests for this ${lang} code:\n\n${text}`,
+      types:    (lang, text) => `Add proper type annotations/hints to this ${lang} code:\n\n${text}`,
+      docs:     (lang, text) => `Add docstrings and inline documentation to this ${lang} code:\n\n${text}`,
+    };
+
+    runBtn.addEventListener('click', async () => {
+      const text = input.value.trim();
+      if (!text) return;
+
+      const task = document.getElementById('task-type').value;
+      const lang = document.getElementById('lang-select').value;
+
+      let prompt = PROMPT_TEMPLATES[task]?.(lang, text) || text;
+      if (fileContext) {
+        prompt = `File context: \`${fileContext.name}\`\n\n\`\`\`${fileContext.language}\n${fileContext.content}\n\`\`\`\n\n${prompt}`;
+      }
+
+      runBtn.disabled = true;
+      setStatus('PROCESSING...', 'running');
+      output.textContent = '';
+
+      try {
+        const r = await fetch('http://localhost:8000/chat', {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({ message: prompt, model: 'qwen2.5-coder:7b' })
+        });
+        const d = await r.json();
+        output.textContent = d.response || d.error || 'No response.';
+        document.getElementById('model-used').textContent = 'model: ' + (d.model || '—');
+        document.getElementById('token-count').textContent = output.textContent.length + ' chars';
+        setStatus('DONE', 'done');
+      } catch {
+        output.textContent = '[ERROR] Backend unreachable. Is JARVIS running?';
+        setStatus('ERROR', 'error');
+      }
+
+      runBtn.disabled = false;
+    });
+
+    function setStatus(label, cls) {
+      status.textContent = label;
+      status.className   = 'status-chip ' + (cls || '');
+    }
+
+    // ── Copy output ───────────────────────────────────────────
+    document.getElementById('copy-btn').addEventListener('click', () => {
+      navigator.clipboard.writeText(output.textContent);
+      document.getElementById('copy-btn').textContent = '✓';
+      setTimeout(() => document.getElementById('copy-btn').textContent = '⎘', 1500);
+    });
+
+    // ── Open output in VS Code ────────────────────────────────
+    document.getElementById('open-file-btn').addEventListener('click', async () => {
+      try {
+        await fetch('http://localhost:8000/vscode/open', { method: 'POST',
+          headers: {'Content-Type':'application/json'}, body: '{}' });
+      } catch { alert('VS Code unavailable.'); }
+    });
+
+    // ── File drag & drop ──────────────────────────────────────
+    const inputWrap = document.getElementById('input-wrap');
+    inputWrap.addEventListener('dragover', (e) => {
+      e.preventDefault();
+      dropOverlay.classList.add('active');
+    });
+    inputWrap.addEventListener('dragleave', () => dropOverlay.classList.remove('active'));
+    inputWrap.addEventListener('drop', (e) => {
+      e.preventDefault();
+      dropOverlay.classList.remove('active');
+      const file = e.dataTransfer.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = (ev) => {
+        fileContext = {
+          name:     file.name,
+          content:  ev.target.result,
+          language: detectLang(file.name),
+        };
+        ctxFile.textContent = file.name;
+        ctxBar.classList.add('show');
+        // Auto-select language
+        const sel = document.getElementById('lang-select');
+        if (fileContext.language) {
+          for (const opt of sel.options) {
+            if (opt.value === fileContext.language) { sel.value = fileContext.language; break; }
+          }
+        }
+      };
+      reader.readAsText(file);
+    });
+
+    ctxClear.addEventListener('click', () => {
+      fileContext = null;
+      ctxBar.classList.remove('show');
+    });
+
+    function detectLang(filename) {
+      const ext = filename.split('.').pop().toLowerCase();
+      return { py:'python', js:'javascript', ts:'typescript', rs:'rust',
+               go:'go', cpp:'cpp', java:'java', sh:'bash', sql:'sql' }[ext] || '';
+    }
+
+    // ── Recent projects ───────────────────────────────────────
+    async function loadRecents() {
+      try {
+        const r = await fetch('http://localhost:8000/vscode/recents');
+        const d = await r.json();
+        const list = document.getElementById('recent-list');
+        if (!d.recents?.length) return;
+        list.innerHTML = '';
+        d.recents.forEach(item => {
+          const el = document.createElement('div');
+          el.className = 'recent-item';
+          el.innerHTML = `<div class="recent-name">${item.name || 'Unknown'}</div>
+                          <div class="recent-path">${item.path || ''}</div>`;
+          el.addEventListener('click', () => openVSCode(item.path));
+          list.appendChild(el);
+        });
+      } catch {}
+    }
+
+    async function openVSCode(path = '') {
+      try {
+        await fetch('http://localhost:8000/vscode/open', {
+          method: 'POST',
+          headers: {'Content-Type':'application/json'},
+          body: JSON.stringify({ path })
+        });
+      } catch { alert('VS Code unavailable.'); }
+    }
+
+    document.getElementById('open-vscode-btn').addEventListener('click', () => openVSCode());
+    loadRecents();
+  </script>
+</body>
+</html>

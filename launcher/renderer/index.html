@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>JARVIS</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;700;900&family=Share+Tech+Mono&family=Rajdhani:wght@300;400;500;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="css/main.css" />
+</head>
+<body>
+
+  <!-- Custom titlebar -->
+  <div id="titlebar">
+    <div id="titlebar-drag">
+      <span class="title-logo">⬡</span>
+      <span class="title-text">JARVIS <span class="title-version">v1.0</span></span>
+    </div>
+    <div id="titlebar-controls">
+      <button class="win-btn" id="btn-minimize" title="Minimize">─</button>
+      <button class="win-btn" id="btn-maximize" title="Maximize">□</button>
+      <button class="win-btn close" id="btn-close" title="Close">✕</button>
+    </div>
+  </div>
+
+  <!-- App shell -->
+  <div id="app-shell">
+
+    <!-- Sidebar -->
+    <nav id="sidebar">
+      <div class="sidebar-brand">
+        <div class="brand-icon">J</div>
+      </div>
+
+      <ul class="nav-links">
+        <li class="nav-item active" data-page="home" title="Home">
+          <span class="nav-icon">⬡</span>
+          <span class="nav-label">HOME</span>
+        </li>
+        <li class="nav-item" data-page="chat" title="Chat">
+          <span class="nav-icon">◈</span>
+          <span class="nav-label">CHAT</span>
+        </li>
+        <li class="nav-item" data-page="code" title="Code">
+          <span class="nav-icon">⟨/⟩</span>
+          <span class="nav-label">CODE</span>
+        </li>
+        <li class="nav-item" data-page="voice" title="Voice">
+          <span class="nav-icon">◉</span>
+          <span class="nav-label">VOICE</span>
+        </li>
+      </ul>
+
+      <div class="sidebar-bottom">
+        <div class="system-status">
+          <div class="status-dot" id="backend-status"></div>
+          <span class="status-label">SYS</span>
+        </div>
+        <li class="nav-item" data-page="settings" title="Settings" style="list-style:none">
+          <span class="nav-icon">⚙</span>
+          <span class="nav-label">CFG</span>
+        </li>
+      </div>
+    </nav>
+
+    <!-- Page container -->
+    <main id="page-container">
+      <!-- Pages load here via router.js -->
+      <div id="page-loading" class="page-loader">
+        <div class="loader-ring"></div>
+        <span>INITIALIZING</span>
+      </div>
+    </main>
+
+  </div>
+
+  <!-- Scan line overlay -->
+  <div id="scanlines"></div>
+
+  <script src="js/router.js"></script>
+  <script src="js/api.js"></script>
+  <script src="js/main.js"></script>
+</body>
+</html>

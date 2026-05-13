@@ -1,0 +1,31 @@
+{
+  "name": "jarvis-launcher",
+  "version": "1.0.0",
+  "description": "JARVIS Portable AI Workspace",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "build": "electron-builder --win --x64",
+    "dev": "electron . --dev"
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "electron": "^28.0.0",
+    "electron-builder": "^24.0.0"
+  },
+  "build": {
+    "appId": "com.jarvis.workspace",
+    "productName": "JARVIS",
+    "win": {
+      "target": "portable",
+      "icon": "assets/icon.ico"
+    },
+    "directories": {
+      "output": "../dist"
+    },
+    "files": [
+      "**/*",
+      "!node_modules/.cache"
+    ]
+  }
+}
